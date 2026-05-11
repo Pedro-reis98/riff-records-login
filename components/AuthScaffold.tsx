@@ -83,7 +83,7 @@ export function AuthScaffold({
                     isCompact && styles.heroTitleCompact,
                   ]}
                 >
-                  Seu vinil de rock comeca aqui.
+                  Seu vinil de rock começa aqui.
                 </Text>
                 <Text
                   nativeID="auth-hero-subtitle"

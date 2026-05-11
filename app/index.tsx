@@ -45,14 +45,14 @@ export default function LoginScreen() {
   function handleRecoverPassword() {
     setFeedback({
       tone: "info",
-      text: "Recuperacao selecionada. Informe seu e-mail no login para receber as instrucoes.",
+      text: "Recuperação selecionada. Informe seu e-mail no login para receber as instruções.",
     });
   }
 
   function handleCreateAccount() {
     setFeedback({
       tone: "info",
-      text: "Cadastro selecionado. A proxima tela seria o formulario para novos clientes.",
+      text: "Cadastro selecionado. A próxima tela seria o formulário para novos clientes.",
     });
   }
 
@@ -60,7 +60,7 @@ export default function LoginScreen() {
     <AuthScaffold
       eyebrow="Bem-vindo de volta"
       title="Entre na sua conta"
-      subtitle="Acesse sua area para comprar vinis, salvar favoritos e acompanhar pedidos."
+      subtitle="Acesse sua área para comprar vinis, salvar favoritos e acompanhar pedidos."
     >
       <AuthInput
         autoCapitalize="none"
@@ -108,7 +108,7 @@ export default function LoginScreen() {
       </AuthButton>
 
       <View style={styles.footerRow}>
-        <Text style={styles.footerText}>Ainda nao tem acesso?</Text>
+        <Text style={styles.footerText}>Ainda não tem acesso?</Text>
         <Pressable onPress={handleCreateAccount} style={styles.linkHitArea}>
           <Text style={styles.linkStrong}>Criar uma conta</Text>
         </Pressable>

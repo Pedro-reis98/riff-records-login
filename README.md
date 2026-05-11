@@ -2,18 +2,18 @@
 
 Tela de login responsiva feita em Expo + React Native Web para uma loja de vinis de rock.
 
-O objetivo do projeto e atender ao desafio da faculdade:
+O objetivo do projeto é atender ao desafio da faculdade:
 
 - uma imagem principal
 - dois campos para login e senha
-- um botao de acesso
+- um botão de acesso
 - um link para recuperar senha
 - um link para criar conta
-- confirmacao visual depois do login
+- confirmação visual depois do login
 
 ## Rodando localmente
 
-Instale as dependencias:
+Instale as dependências:
 
 ```bash
 npm install
@@ -25,7 +25,7 @@ Inicie o projeto no navegador:
 npm run web
 ```
 
-## Validacao
+## Validação
 
 Antes de publicar, rode:
 
@@ -37,20 +37,20 @@ Esse comando executa a checagem TypeScript e gera o build web em `dist`.
 
 ## Deploy no Render
 
-O arquivo `render.yaml` esta configurado para publicar o projeto como Static Site no Render.
+O arquivo `render.yaml` está configurado para publicar o projeto como Static Site no Render.
 
 No Render:
 
-1. Crie um novo Blueprint ou conecte o repositorio pelo painel.
+1. Crie um novo Blueprint ou conecte o repositório pelo painel.
 2. Selecione o arquivo `render.yaml`.
-3. Confirme o servico `riff-records-login`.
+3. Confirme o serviço `riff-records-login`.
 4. Publique.
 
-Configuracao usada:
+Configuração usada:
 
 - Build Command: `npm ci && npm run build:web`
 - Publish Directory: `dist`
 - Runtime: Static
 - Rewrite: `/*` para `/index.html`
 
-Nao precisa configurar banco de dados, API ou variaveis secretas para essa versao.
+Não precisa configurar banco de dados, API ou variáveis secretas para essa versão.
