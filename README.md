@@ -1,25 +1,59 @@
 # Riff Records Login
 
-Tela de login responsiva feita em Expo + React Native Web para uma loja de vinis de rock.
+Aplicação de autenticação para uma loja de vinis de rock, feita com Expo + React Native Web, API Express e Postgres.
 
-O objetivo do projeto é atender ao desafio da faculdade:
+## O que tem no projeto
 
-- uma imagem principal
-- dois campos para login e senha
-- um botão de acesso
-- um link para recuperar senha
-- um link para criar conta
-- confirmação visual depois do login
+- tela de login responsiva
+- cadastro de usuário
+- confirmação de e-mail
+- recuperação de senha
+- redefinição de senha por token
+- área logada simples
+- API Node/Express
+- banco Postgres
+- deploy no Render com Web Service + Database
 
 ## Rodando localmente
 
-Instale as dependências:
+Instale as dependências do app:
 
 ```bash
 npm install
 ```
 
-Inicie o projeto no navegador:
+Instale as dependências da API:
+
+```bash
+npm --prefix server install
+```
+
+Crie os arquivos de ambiente:
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item server/.env.example server/.env
+```
+
+Suba o Postgres local:
+
+```bash
+docker compose up -d
+```
+
+Prepare as tabelas:
+
+```bash
+npm run api:db:init
+```
+
+Inicie a API:
+
+```bash
+npm run api:dev
+```
+
+Em outro terminal, inicie o app:
 
 ```bash
 npm run web
@@ -30,27 +64,41 @@ npm run web
 Antes de publicar, rode:
 
 ```bash
-npm run deploy:check
+npm run typecheck
+npm run build:web
 ```
-
-Esse comando executa a checagem TypeScript e gera o build web em `dist`.
 
 ## Deploy no Render
 
-O arquivo `render.yaml` está configurado para publicar o projeto como Static Site no Render.
+O `render.yaml` está configurado como Blueprint. Ele cria:
+
+- um Web Service `riff-records-login`
+- um Postgres `riff-records-db`
+- build estático do Expo Web em `dist`
+- API Node servindo o frontend e os endpoints `/auth/*`
 
 No Render:
 
-1. Crie um novo Blueprint ou conecte o repositório pelo painel.
-2. Selecione o arquivo `render.yaml`.
-3. Confirme o serviço `riff-records-login`.
-4. Publique.
+1. Conecte o repositório.
+2. Escolha Blueprint e selecione o `render.yaml`.
+3. Preencha os campos secretos quando solicitado:
+   - `APP_URL`: URL pública do serviço, por exemplo `https://riff-records-login.onrender.com`
+   - `BREVO_API_KEY`: chave da Brevo, se quiser envio real de e-mail
+   - `MAIL_FROM`: remetente verificado, por exemplo `Riff Records <no-reply@seudominio.com>`
 
-Configuração usada:
+O `DATABASE_URL` e o `JWT_SECRET` são gerados automaticamente pelo Render.
 
-- Build Command: `npm ci && npm run build:web`
-- Publish Directory: `dist`
-- Runtime: Static
-- Rewrite: `/*` para `/index.html`
+## E-mails
 
-Não precisa configurar banco de dados, API ou variáveis secretas para essa versão.
+Se `BREVO_API_KEY` estiver configurado, a API envia e-mails reais pela Brevo.
+
+Sem Brevo ou SMTP, os e-mails aparecem no console da API em desenvolvimento. Isso permite testar o link de confirmação e recuperação localmente.
+
+## Rotas
+
+- `/` login
+- `/register` criar conta
+- `/recover` recuperar senha
+- `/verify-email` confirmar e-mail
+- `/reset-password` criar nova senha
+- `/home` confirmação de acesso
