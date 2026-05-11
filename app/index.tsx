@@ -87,7 +87,11 @@ export default function LoginScreen() {
       />
 
       <View style={styles.actionsRow}>
-        <Pressable onPress={handleRecoverPassword} style={styles.linkHitArea}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleRecoverPassword}
+          style={styles.linkHitArea}
+        >
           <Text style={styles.link}>Esqueci minha senha</Text>
         </Pressable>
       </View>
@@ -109,7 +113,11 @@ export default function LoginScreen() {
 
       <View style={styles.footerRow}>
         <Text style={styles.footerText}>Ainda não tem acesso?</Text>
-        <Pressable onPress={handleCreateAccount} style={styles.linkHitArea}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleCreateAccount}
+          style={styles.linkHitArea}
+        >
           <Text style={styles.linkStrong}>Criar uma conta</Text>
         </Pressable>
       </View>
