@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ArrowRight, LockKeyhole, Mail } from "lucide-react-native";
+import { router } from "expo-router";
+import { ArrowRight, LockKeyhole, Mail, Send } from "lucide-react-native";
 
 import { AuthButton } from "@/components/AuthButton";
 import { AuthInput } from "@/components/AuthInput";
 import { AuthScaffold } from "@/components/AuthScaffold";
+import { apiRequest, ApiMessage, AuthPayload } from "@/lib/api";
 
 type Feedback = {
   text: string;
@@ -15,45 +17,94 @@ export default function LoginScreen() {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [canResendVerification, setCanResendVerification] = useState(false);
 
   const canSubmit = useMemo(
-    () => login.trim().length >= 3 && password.length >= 4,
+    () => login.trim().includes("@") && password.length >= 6,
     [login, password]
   );
 
   async function handleLogin() {
     setFeedback(null);
+    setCanResendVerification(false);
 
     if (!canSubmit) {
       setFeedback({
         tone: "error",
-        text: "Digite seu login e sua senha para entrar na loja.",
+        text: "Digite seu e-mail e uma senha com pelo menos 6 caracteres.",
       });
       return;
     }
 
-    setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setLoading(false);
-    setFeedback({
-      tone: "success",
-      text: "Login confirmado. Bem-vindo a Riff Records.",
-    });
+    try {
+      setLoading(true);
+      const auth = await apiRequest<AuthPayload>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: login.trim().toLowerCase(),
+          password,
+        }),
+      });
+
+      router.replace({
+        pathname: "/home",
+        params: {
+          name: auth.user.name,
+          email: auth.user.email,
+        },
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Não foi possível entrar. Tente novamente em instantes.";
+
+      setFeedback({
+        tone: "error",
+        text: message,
+      });
+      setCanResendVerification(message.includes("Confirme seu e-mail"));
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleRecoverPassword() {
-    setFeedback({
-      tone: "info",
-      text: "Recuperação selecionada. Informe seu e-mail no login para receber as instruções.",
-    });
-  }
+  async function handleResendVerification() {
+    const email = login.trim().toLowerCase();
 
-  function handleCreateAccount() {
-    setFeedback({
-      tone: "info",
-      text: "Cadastro selecionado. A próxima tela seria o formulário para novos clientes.",
-    });
+    if (!email.includes("@")) {
+      setFeedback({
+        tone: "error",
+        text: "Informe seu e-mail para reenviar a confirmação.",
+      });
+      setCanResendVerification(false);
+      return;
+    }
+
+    try {
+      setResending(true);
+      const result = await apiRequest<ApiMessage>("/auth/resend-verification", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+
+      setFeedback({
+        tone: "info",
+        text: result.message,
+      });
+    } catch (error) {
+      setFeedback({
+        tone: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível reenviar a confirmação agora.",
+      });
+    } finally {
+      setResending(false);
+    }
   }
 
   return (
@@ -64,9 +115,10 @@ export default function LoginScreen() {
     >
       <AuthInput
         autoCapitalize="none"
-        autoComplete="username"
+        autoComplete="email"
         icon={<Mail size={21} color="#8F251F" />}
-        label="Login ou e-mail"
+        keyboardType="email-address"
+        label="E-mail"
         onChangeText={setLogin}
         placeholder="cliente@riffrecords.com"
         returnKeyType="next"
@@ -89,7 +141,7 @@ export default function LoginScreen() {
       <View style={styles.actionsRow}>
         <Pressable
           accessibilityRole="button"
-          onPress={handleRecoverPassword}
+          onPress={() => router.push("/recover")}
           style={styles.linkHitArea}
         >
           <Text style={styles.link}>Esqueci minha senha</Text>
@@ -100,6 +152,17 @@ export default function LoginScreen() {
         <Text style={[styles.feedback, styles[feedback.tone]]}>
           {feedback.text}
         </Text>
+      ) : null}
+
+      {canResendVerification ? (
+        <AuthButton
+          icon={<Send size={19} color="#8F251F" />}
+          loading={resending}
+          onPress={handleResendVerification}
+          variant="secondary"
+        >
+          Reenviar confirmação
+        </AuthButton>
       ) : null}
 
       <AuthButton
@@ -115,7 +178,7 @@ export default function LoginScreen() {
         <Text style={styles.footerText}>Ainda não tem acesso?</Text>
         <Pressable
           accessibilityRole="button"
-          onPress={handleCreateAccount}
+          onPress={() => router.push("/register")}
           style={styles.linkHitArea}
         >
           <Text style={styles.linkStrong}>Criar uma conta</Text>
