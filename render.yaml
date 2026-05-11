@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: riff-records-login
+    runtime: static
+    buildCommand: npm ci && npm run build:web
+    staticPublishPath: ./dist
+    autoDeployTrigger: commit
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
