@@ -7,4 +7,19 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*', 'app-example/**'],
   },
+  {
+    files: ['server/**/*.js'],
+    languageOptions: {
+      globals: {
+        __dirname: 'readonly',
+        clearTimeout: 'readonly',
+        console: 'readonly',
+        fetch: 'readonly',
+        module: 'readonly',
+        process: 'readonly',
+        require: 'readonly',
+        setTimeout: 'readonly',
+      },
+    },
+  },
 ]);

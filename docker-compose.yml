@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: riff-records-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: riffrecords
+      POSTGRES_PASSWORD: riffrecords
+      POSTGRES_DB: riffrecords
+    ports:
+      - "5432:5432"
+    volumes:
+      - riff_records_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U riffrecords -d riffrecords"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  riff_records_postgres:
