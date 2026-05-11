@@ -132,40 +132,77 @@ export default function RootLayout() {
 
           @media (max-width: 559px) {
             #auth-hero {
-              height: 300px !important;
+              height: 280px !important;
             }
 
             #auth-hero-copy {
-              padding: 26px 22px !important;
+              padding: 24px 20px !important;
             }
 
             #auth-hero-title {
-              font-size: 30px !important;
-              line-height: 36px !important;
+              font-size: 28px !important;
+              line-height: 34px !important;
             }
 
             #auth-hero-subtitle {
-              font-size: 15px !important;
-              line-height: 22px !important;
-              margin-top: 14px !important;
+              font-size: 14px !important;
+              line-height: 21px !important;
+              margin-top: 12px !important;
             }
 
             #auth-form-pane {
-              padding: 34px 22px !important;
+              padding: 30px 20px !important;
             }
 
             #auth-form-content {
-              max-width: calc(100vw - 44px) !important;
+              max-width: calc(100vw - 40px) !important;
             }
 
             #auth-brand-mark {
-              height: 74px !important;
-              width: 74px !important;
+              height: 70px !important;
+              width: 70px !important;
             }
 
             #auth-title {
-              font-size: 34px !important;
-              line-height: 40px !important;
+              font-size: 32px !important;
+              line-height: 38px !important;
+            }
+          }
+
+          @media (max-width: 429px) {
+            #auth-hero {
+              height: 260px !important;
+            }
+
+            #auth-hero-copy {
+              max-width: 188px !important;
+              padding: 22px 18px !important;
+              width: 188px !important;
+            }
+
+            #auth-hero-title {
+              font-size: 24px !important;
+              line-height: 30px !important;
+              max-width: 176px !important;
+            }
+
+            #auth-hero-subtitle {
+              font-size: 13px !important;
+              line-height: 20px !important;
+              max-width: 176px !important;
+            }
+
+            #auth-form-pane {
+              padding: 28px 18px !important;
+            }
+
+            #auth-form-content {
+              max-width: calc(100vw - 36px) !important;
+            }
+
+            #auth-title {
+              font-size: 30px !important;
+              line-height: 36px !important;
             }
           }
         `}</style>

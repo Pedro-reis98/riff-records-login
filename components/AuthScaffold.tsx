@@ -29,6 +29,7 @@ export function AuthScaffold({
   const isWaitingForWebWidth = Platform.OS === "web" && (!width || width < 1);
   const isWide = isWaitingForWebWidth || width >= 900;
   const isCompact = !isWide && width < 560;
+  const isPhone = !isWide && width < 430;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -53,6 +54,7 @@ export function AuthScaffold({
                 styles.heroPane,
                 isWide ? styles.heroWide : styles.heroNarrow,
                 isCompact && styles.heroCompact,
+                isPhone && styles.heroPhone,
               ]}
             >
               <Image
@@ -62,9 +64,10 @@ export function AuthScaffold({
                 style={[
                   styles.heroImage,
                   isWide ? styles.heroImageWide : styles.heroImageNarrow,
+                  isCompact && styles.heroImageCompact,
                 ]}
               />
-              <View style={styles.heroOverlay} />
+              <View style={[styles.heroOverlay, isCompact && styles.heroOverlayCompact]} />
 
               <View
                 nativeID="auth-hero-copy"
@@ -72,6 +75,7 @@ export function AuthScaffold({
                   styles.heroCopy,
                   !isWide && styles.heroCopyNarrow,
                   isCompact && styles.heroCopyCompact,
+                  isPhone && styles.heroCopyPhone,
                 ]}
               >
                 <Text style={styles.heroKicker}>Riff Records</Text>
@@ -81,13 +85,18 @@ export function AuthScaffold({
                     styles.heroTitle,
                     !isWide && styles.heroTitleNarrow,
                     isCompact && styles.heroTitleCompact,
+                    isPhone && styles.heroTitlePhone,
                   ]}
                 >
                   Seu vinil de rock começa aqui.
                 </Text>
                 <Text
                   nativeID="auth-hero-subtitle"
-                  style={[styles.heroSubtitle, isCompact && styles.heroSubtitleCompact]}
+                  style={[
+                    styles.heroSubtitle,
+                    isCompact && styles.heroSubtitleCompact,
+                    isPhone && styles.heroSubtitlePhone,
+                  ]}
                 >
                   Entre para guardar favoritos, acompanhar pedidos e descobrir discos
                   que merecem volume alto.
@@ -101,11 +110,16 @@ export function AuthScaffold({
                 styles.formPane,
                 isWide ? styles.formWide : styles.formNarrow,
                 isCompact && styles.formCompact,
+                isPhone && styles.formPhone,
               ]}
             >
               <View
                 nativeID="auth-form-content"
-                style={[styles.formContent, isCompact && styles.formContentCompact]}
+                style={[
+                  styles.formContent,
+                  isCompact && styles.formContentCompact,
+                  isPhone && styles.formContentPhone,
+                ]}
               >
                 <View style={styles.logoWrap}>
                   <View
@@ -118,7 +132,9 @@ export function AuthScaffold({
                       <Zap size={isCompact ? 18 : 21} color="#FFCF57" fill="#FFCF57" />
                     </View>
                   </View>
-                  <Text style={styles.brandName}>RIFF RECORDS</Text>
+                  <Text style={[styles.brandName, isCompact && styles.brandNameCompact]}>
+                    RIFF RECORDS
+                  </Text>
                   <Text style={styles.brandTagline}>Vinis de rock</Text>
                 </View>
                 <View style={styles.formDivider}>
@@ -134,13 +150,18 @@ export function AuthScaffold({
                   style={[
                     styles.title,
                     isCompact && styles.titleCompact,
+                    isPhone && styles.titlePhone,
                   ]}
                 >
                   {title}
                 </Text>
                 <Text
                   nativeID="auth-subtitle"
-                  style={[styles.subtitle, isCompact && styles.subtitleCompact]}
+                  style={[
+                    styles.subtitle,
+                    isCompact && styles.subtitleCompact,
+                    isPhone && styles.subtitlePhone,
+                  ]}
                 >
                   {subtitle}
                 </Text>
@@ -193,7 +214,10 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   heroCompact: {
-    height: 300,
+    height: 280,
+  },
+  heroPhone: {
+    height: 260,
   },
   heroImage: {
     bottom: 0,
@@ -210,9 +234,15 @@ const styles = StyleSheet.create({
   heroImageNarrow: {
     width: "100%",
   },
+  heroImageCompact: {
+    opacity: 0.72,
+  },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(10, 5, 4, 0.24)",
+  },
+  heroOverlayCompact: {
+    backgroundColor: "rgba(10, 5, 4, 0.48)",
   },
   heroCopy: {
     flex: 1,
@@ -228,8 +258,15 @@ const styles = StyleSheet.create({
     paddingVertical: 30,
   },
   heroCopyCompact: {
-    paddingHorizontal: 22,
-    paddingVertical: 26,
+    maxWidth: 350,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+  heroCopyPhone: {
+    maxWidth: 188,
+    paddingHorizontal: 18,
+    paddingVertical: 22,
+    width: 188,
   },
   heroKicker: {
     color: "#FFCF57",
@@ -251,8 +288,13 @@ const styles = StyleSheet.create({
     lineHeight: 40,
   },
   heroTitleCompact: {
-    fontSize: 30,
-    lineHeight: 36,
+    fontSize: 28,
+    lineHeight: 34,
+  },
+  heroTitlePhone: {
+    fontSize: 24,
+    lineHeight: 30,
+    maxWidth: 176,
   },
   heroSubtitle: {
     color: "#E9D3BC",
@@ -263,9 +305,14 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   heroSubtitleCompact: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginTop: 14,
+    fontSize: 14,
+    lineHeight: 21,
+    marginTop: 12,
+  },
+  heroSubtitlePhone: {
+    fontSize: 13,
+    lineHeight: 20,
+    maxWidth: 176,
   },
   formPane: {
     alignItems: "center",
@@ -283,15 +330,22 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   formCompact: {
-    paddingHorizontal: 22,
-    paddingVertical: 34,
+    paddingHorizontal: 20,
+    paddingVertical: 30,
+  },
+  formPhone: {
+    paddingHorizontal: 18,
+    paddingVertical: 28,
   },
   formContent: {
     maxWidth: 470,
     width: "100%",
   },
   formContentCompact: {
-    maxWidth: 430,
+    maxWidth: 410,
+  },
+  formContentPhone: {
+    maxWidth: 380,
   },
   logoWrap: {
     alignItems: "center",
@@ -311,9 +365,9 @@ const styles = StyleSheet.create({
     width: 84,
   },
   brandMarkCompact: {
-    borderRadius: 32,
-    height: 74,
-    width: 74,
+    borderRadius: 30,
+    height: 70,
+    width: 70,
   },
   brandBolt: {
     alignItems: "center",
@@ -331,6 +385,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "900",
     letterSpacing: 0,
+  },
+  brandNameCompact: {
+    fontSize: 22,
   },
   brandTagline: {
     color: "#8F251F",
@@ -378,8 +435,12 @@ const styles = StyleSheet.create({
     lineHeight: 48,
   },
   titleCompact: {
-    fontSize: 34,
-    lineHeight: 40,
+    fontSize: 32,
+    lineHeight: 38,
+  },
+  titlePhone: {
+    fontSize: 30,
+    lineHeight: 36,
   },
   subtitle: {
     color: "#5F514A",
@@ -390,9 +451,13 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   subtitleCompact: {
-    fontSize: 15,
-    lineHeight: 23,
+    fontSize: 14,
+    lineHeight: 22,
     marginTop: 10,
+  },
+  subtitlePhone: {
+    fontSize: 14,
+    lineHeight: 21,
   },
   formBody: {
     gap: 18,
