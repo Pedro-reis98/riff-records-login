@@ -5,10 +5,9 @@ Aplicação de autenticação para uma loja de vinis de rock, feita com Expo + R
 ## O que tem no projeto
 
 - tela de login responsiva
-- cadastro de usuário
-- confirmação de e-mail
-- recuperação de senha
-- redefinição de senha por token
+- cadastro local de usuário
+- login com usuário e senha
+- troca local de senha
 - área logada simples
 - API Node/Express
 - banco Postgres
@@ -81,24 +80,19 @@ No Render:
 
 1. Conecte o repositório.
 2. Escolha Blueprint e selecione o `render.yaml`.
-3. Preencha os campos secretos quando solicitado:
-   - `APP_URL`: URL pública do serviço, por exemplo `https://riff-records-login.onrender.com`
-   - `BREVO_API_KEY`: chave da Brevo, se quiser envio real de e-mail
-   - `MAIL_FROM`: remetente verificado, por exemplo `Riff Records <no-reply@seudominio.com>`
+3. Preencha `APP_URL` com a URL pública do serviço, por exemplo `https://riff-records-login.onrender.com`.
 
 O `DATABASE_URL` e o `JWT_SECRET` são gerados automaticamente pelo Render.
 
-## E-mails
+## Fluxo de conta
 
-Se `BREVO_API_KEY` estiver configurado, a API envia e-mails reais pela Brevo.
+O cadastro é local. A pessoa escolhe nome, usuário e senha. Não existe confirmação por e-mail, token externo ou serviço de envio de mensagens.
 
-Sem Brevo ou SMTP, os e-mails aparecem no console da API em desenvolvimento. Isso permite testar o link de confirmação e recuperação localmente.
+A recuperação de acesso também é local: informe o usuário, digite uma nova senha e salve.
 
 ## Rotas
 
 - `/` login
 - `/register` criar conta
-- `/recover` recuperar senha
-- `/verify-email` confirmar e-mail
-- `/reset-password` criar nova senha
+- `/recover` trocar senha
 - `/home` confirmação de acesso

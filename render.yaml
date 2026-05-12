@@ -27,7 +27,3 @@ services:
         sync: false
       - key: CORS_ORIGIN
         value: "*"
-      - key: BREVO_API_KEY
-        sync: false
-      - key: MAIL_FROM
-        sync: false
