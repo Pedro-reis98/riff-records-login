@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
-import { ArrowLeft, Mail, Send } from "lucide-react-native";
+import { ArrowLeft, LockKeyhole, Save, UserRound } from "lucide-react-native";
 
 import { AuthButton } from "@/components/AuthButton";
 import { AuthInput } from "@/components/AuthInput";
@@ -9,37 +9,47 @@ import { AuthScaffold } from "@/components/AuthScaffold";
 import { apiRequest } from "@/lib/api";
 
 export default function RecoverScreen() {
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const canSubmit = useMemo(() => email.trim().includes("@"), [email]);
+  const canSubmit = useMemo(
+    () =>
+      login.trim().length >= 3 &&
+      password.length >= 6 &&
+      password === confirmPassword,
+    [confirmPassword, login, password]
+  );
 
   async function handleRecover() {
     setMessage("");
     setSuccess(false);
 
     if (!canSubmit) {
-      setMessage("Informe o e-mail cadastrado para continuar.");
+      setMessage("Informe o usuário e repita a nova senha corretamente.");
       return;
     }
 
     try {
       setLoading(true);
-      await apiRequest<{ ok: boolean; message: string }>("/auth/recover", {
+      const result = await apiRequest<{ ok: boolean; message: string }>("/auth/recover", {
         method: "POST",
         body: JSON.stringify({
-          email: email.trim().toLowerCase(),
+          login: login.trim(),
+          password,
+          confirmPassword,
         }),
       });
       setSuccess(true);
-      setMessage("Se este e-mail estiver cadastrado, você receberá as instruções.");
+      setMessage(result.message);
     } catch (error) {
       setMessage(
         error instanceof Error
           ? error.message
-          : "Não foi possível solicitar a recuperação agora."
+          : "Não foi possível atualizar a senha agora."
       );
     } finally {
       setLoading(false);
@@ -49,20 +59,43 @@ export default function RecoverScreen() {
   return (
     <AuthScaffold
       eyebrow="Recuperar acesso"
-      title="Vamos ajudar você"
-      subtitle="Digite o e-mail da sua conta para receber o próximo passo."
+      title="Crie uma nova senha"
+      subtitle="Informe o usuário da conta e defina uma senha nova localmente."
     >
       <AuthInput
         autoCapitalize="none"
-        autoComplete="email"
-        icon={<Mail size={21} color="#8F251F" />}
-        keyboardType="email-address"
-        label="E-mail"
-        onChangeText={setEmail}
+        autoComplete="username"
+        icon={<UserRound size={21} color="#8F251F" />}
+        label="Usuário"
+        onChangeText={setLogin}
+        placeholder="Digite seu usuário"
+        returnKeyType="next"
+        value={login}
+      />
+
+      <AuthInput
+        autoCapitalize="none"
+        icon={<LockKeyhole size={21} color="#8F251F" />}
+        label="Nova senha"
+        onChangeText={setPassword}
+        placeholder="Digite a nova senha"
+        returnKeyType="next"
+        secureTextEntry
+        secureToggle
+        value={password}
+      />
+
+      <AuthInput
+        autoCapitalize="none"
+        icon={<LockKeyhole size={21} color="#8F251F" />}
+        label="Confirmar nova senha"
+        onChangeText={setConfirmPassword}
         onSubmitEditing={handleRecover}
-        placeholder="cliente@riffrecords.com"
-        returnKeyType="send"
-        value={email}
+        placeholder="Repita a nova senha"
+        returnKeyType="go"
+        secureTextEntry
+        secureToggle
+        value={confirmPassword}
       />
 
       {message ? (
@@ -73,11 +106,11 @@ export default function RecoverScreen() {
 
       <AuthButton
         disabled={!canSubmit}
-        icon={<Send size={19} color="#FFF4E2" />}
+        icon={<Save size={19} color="#FFF4E2" />}
         loading={loading}
         onPress={handleRecover}
       >
-        Enviar instruções
+        Salvar nova senha
       </AuthButton>
 
       <View style={styles.footerRow}>

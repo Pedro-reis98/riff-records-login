@@ -12,8 +12,7 @@ export type AuthPayload = {
   user: {
     id: string;
     name: string;
-    email: string;
-    emailVerified?: boolean;
+    login: string;
   };
   token: string;
 };

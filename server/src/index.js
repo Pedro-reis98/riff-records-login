@@ -11,18 +11,23 @@ const { z } = require("zod");
 
 const { createToken, getBearerToken, verifyToken } = require("./auth");
 const { ensureSchema, pool } = require("./db/pool");
-const { sendPasswordResetEmail, sendVerificationEmail } = require("./mailer");
-const { createActionToken, hashToken, hoursFromNow } = require("./tokens");
 
 const app = express();
 const port = Number(process.env.PORT || 3333);
 const distPath = path.resolve(__dirname, "../../dist");
-const emailAssetsPath = path.resolve(__dirname, "../../assets/images");
 const indexHtmlPath = path.join(distPath, "index.html");
+
+const loginField = z
+  .string()
+  .trim()
+  .min(3, "Informe um usuário com pelo menos 3 caracteres.")
+  .max(40, "Use um usuário com até 40 caracteres.")
+  .regex(/^[a-zA-Z0-9._-]+$/, "Use apenas letras, números, ponto, traço ou underline no usuário.")
+  .transform((value) => value.toLowerCase());
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, "Informe seu nome."),
-  email: z.email("Informe um e-mail valido.").transform((value) => value.toLowerCase()),
+  login: loginField,
   password: z.string().min(6, "Use uma senha com pelo menos 6 caracteres."),
   confirmPassword: z.string().min(6, "Repita sua senha para continuar."),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -31,24 +36,12 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-  email: z.email("Informe um e-mail valido.").transform((value) => value.toLowerCase()),
+  login: loginField,
   password: z.string().min(6, "Use uma senha com pelo menos 6 caracteres."),
 });
 
 const recoverSchema = z.object({
-  email: z.email("Informe um e-mail valido.").transform((value) => value.toLowerCase()),
-});
-
-const verifyEmailSchema = z.object({
-  token: z.string().min(32, "Link de confirmação inválido."),
-});
-
-const resendVerificationSchema = z.object({
-  email: z.email("Informe um e-mail valido.").transform((value) => value.toLowerCase()),
-});
-
-const resetPasswordSchema = z.object({
-  token: z.string().min(32, "Link de redefinicao invalido."),
+  login: loginField,
   password: z.string().min(6, "Use uma senha com pelo menos 6 caracteres."),
   confirmPassword: z.string().min(6, "Repita sua senha para continuar."),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -85,8 +78,7 @@ function publicUser(user) {
   return {
     id: user.id,
     name: user.name,
-    email: user.email,
-    emailVerified: Boolean(user.email_verified_at),
+    login: user.login,
   };
 }
 
@@ -100,15 +92,6 @@ app.use(
 );
 app.use(cors(corsOptions()));
 app.use(express.json({ limit: "1mb" }));
-
-if (fs.existsSync(emailAssetsPath)) {
-  app.use(
-    "/email-assets",
-    express.static(emailAssetsPath, {
-      maxAge: "7d",
-    })
-  );
-}
 
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
@@ -130,49 +113,36 @@ app.post("/auth/register", async (request, response, next) => {
       return;
     }
 
-    const { name, email, password } = parsed.data;
-    const existingUser = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+    const { name, login, password } = parsed.data;
+    const existingUser = await pool.query("SELECT id FROM users WHERE login = $1", [login]);
 
     if (existingUser.rowCount) {
-      response.status(409).json({ message: "Este e-mail já está em uso." });
+      response.status(409).json({ message: "Este usuário já está em uso." });
       return;
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const verification = createActionToken();
     const result = await pool.query(
       `INSERT INTO users (
         id,
         name,
-        email,
-        password_hash,
-        email_verification_token_hash,
-        email_verification_expires_at
+        login,
+        password_hash
       )
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, name, email, email_verified_at`,
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, name, login`,
       [
         crypto.randomUUID(),
         name,
-        email,
+        login,
         passwordHash,
-        verification.tokenHash,
-        hoursFromNow(24),
       ]
     );
 
-    const user = result.rows[0];
-
-    await sendVerificationEmail({
-      email: user.email,
-      name: user.name,
-      token: verification.token,
-    });
-
     response.status(201).json({
       ok: true,
-      user: publicUser(user),
-      message: "Enviamos um link de confirmação para o seu e-mail.",
+      user: publicUser(result.rows[0]),
+      message: "Conta criada com sucesso. Você já pode entrar.",
     });
   } catch (error) {
     next(error);
@@ -188,10 +158,10 @@ app.post("/auth/login", async (request, response, next) => {
       return;
     }
 
-    const { email, password } = parsed.data;
+    const { login, password } = parsed.data;
     const result = await pool.query(
-      "SELECT id, name, email, password_hash, email_verified_at FROM users WHERE email = $1",
-      [email]
+      "SELECT id, name, login, password_hash FROM users WHERE login = $1",
+      [login]
     );
     const user = result.rows[0];
     const validPassword = user
@@ -199,14 +169,7 @@ app.post("/auth/login", async (request, response, next) => {
       : false;
 
     if (!user || !validPassword) {
-      response.status(401).json({ message: "Login ou senha invalidos." });
-      return;
-    }
-
-    if (!user.email_verified_at) {
-      response.status(403).json({
-        message: "Confirme seu e-mail antes de entrar. Se precisar, solicite um novo link.",
-      });
+      response.status(401).json({ message: "Login ou senha inválidos." });
       return;
     }
 
@@ -228,151 +191,19 @@ app.post("/auth/recover", async (request, response, next) => {
       return;
     }
 
-    const { email } = parsed.data;
-    const result = await pool.query(
-      "SELECT id, name, email FROM users WHERE email = $1",
-      [email]
-    );
-    const user = result.rows[0];
-
-    if (user) {
-      const reset = createActionToken();
-
-      await pool.query(
-        `UPDATE users
-         SET password_reset_token_hash = $1,
-             password_reset_expires_at = $2,
-             updated_at = NOW()
-         WHERE id = $3`,
-        [reset.tokenHash, hoursFromNow(1), user.id]
-      );
-
-      await sendPasswordResetEmail({
-        email: user.email,
-        name: user.name,
-        token: reset.token,
-      });
-    }
-
-    response.json({
-      ok: true,
-      message: "Se este e-mail estiver cadastrado, enviaremos as instrucoes.",
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.post("/auth/verify-email", async (request, response, next) => {
-  try {
-    const parsed = verifyEmailSchema.safeParse(request.body);
-
-    if (!parsed.success) {
-      sendValidationError(response, parsed.error);
-      return;
-    }
-
-    const tokenHash = hashToken(parsed.data.token);
-    const result = await pool.query(
-      `UPDATE users
-       SET email_verified_at = NOW(),
-           email_verification_token_hash = NULL,
-           email_verification_expires_at = NULL,
-           updated_at = NOW()
-       WHERE email_verification_token_hash = $1
-         AND email_verification_expires_at > NOW()
-       RETURNING id, name, email, email_verified_at`,
-      [tokenHash]
-    );
-    const user = result.rows[0];
-
-    if (!user) {
-      response.status(400).json({
-        message: "Link de confirmação inválido ou expirado.",
-      });
-      return;
-    }
-
-    response.json({
-      ok: true,
-      user: publicUser(user),
-      message: "E-mail confirmado. Você já pode entrar.",
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.post("/auth/resend-verification", async (request, response, next) => {
-  try {
-    const parsed = resendVerificationSchema.safeParse(request.body);
-
-    if (!parsed.success) {
-      sendValidationError(response, parsed.error);
-      return;
-    }
-
-    const result = await pool.query(
-      "SELECT id, name, email, email_verified_at FROM users WHERE email = $1",
-      [parsed.data.email]
-    );
-    const user = result.rows[0];
-
-    if (user && !user.email_verified_at) {
-      const verification = createActionToken();
-
-      await pool.query(
-        `UPDATE users
-         SET email_verification_token_hash = $1,
-             email_verification_expires_at = $2,
-             updated_at = NOW()
-         WHERE id = $3`,
-        [verification.tokenHash, hoursFromNow(24), user.id]
-      );
-
-      await sendVerificationEmail({
-        email: user.email,
-        name: user.name,
-        token: verification.token,
-      });
-    }
-
-    response.json({
-      ok: true,
-      message: "Se a conta estiver pendente, enviaremos um novo link de confirmação.",
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.post("/auth/reset-password", async (request, response, next) => {
-  try {
-    const parsed = resetPasswordSchema.safeParse(request.body);
-
-    if (!parsed.success) {
-      sendValidationError(response, parsed.error);
-      return;
-    }
-
-    const tokenHash = hashToken(parsed.data.token);
-    const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+    const { login, password } = parsed.data;
+    const passwordHash = await bcrypt.hash(password, 12);
     const result = await pool.query(
       `UPDATE users
        SET password_hash = $1,
-           password_reset_token_hash = NULL,
-           password_reset_expires_at = NULL,
            updated_at = NOW()
-       WHERE password_reset_token_hash = $2
-         AND password_reset_expires_at > NOW()
+       WHERE login = $2
        RETURNING id`,
-      [passwordHash, tokenHash]
+      [passwordHash, login]
     );
 
     if (!result.rowCount) {
-      response.status(400).json({
-        message: "Link de redefinicao invalido ou expirado.",
-      });
+      response.status(404).json({ message: "Não encontramos uma conta com esse usuário." });
       return;
     }
 
@@ -399,11 +230,11 @@ app.get("/auth/me", async (request, response) => {
       user: {
         id: payload.sub,
         name: payload.name,
-        email: payload.email,
+        login: payload.login,
       },
     });
   } catch {
-    response.status(401).json({ message: "Sessao expirada. Entre novamente." });
+    response.status(401).json({ message: "Sessão expirada. Entre novamente." });
   }
 });
 

@@ -14,7 +14,7 @@ function createToken(user) {
   return jwt.sign(
     {
       sub: user.id,
-      email: user.email,
+      login: user.login,
       name: user.name,
     },
     getJwtSecret(),

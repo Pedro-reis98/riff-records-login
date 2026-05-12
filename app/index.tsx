@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
-import { ArrowRight, LockKeyhole, Mail, Send } from "lucide-react-native";
+import { ArrowRight, LockKeyhole, UserRound } from "lucide-react-native";
 
 import { AuthButton } from "@/components/AuthButton";
 import { AuthInput } from "@/components/AuthInput";
 import { AuthScaffold } from "@/components/AuthScaffold";
-import { apiRequest, ApiMessage, AuthPayload } from "@/lib/api";
+import { apiRequest, AuthPayload } from "@/lib/api";
 
 type Feedback = {
   text: string;
@@ -17,23 +17,20 @@ export default function LoginScreen() {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [canResendVerification, setCanResendVerification] = useState(false);
 
   const canSubmit = useMemo(
-    () => login.trim().includes("@") && password.length >= 6,
+    () => login.trim().length >= 3 && password.length >= 6,
     [login, password]
   );
 
   async function handleLogin() {
     setFeedback(null);
-    setCanResendVerification(false);
 
     if (!canSubmit) {
       setFeedback({
         tone: "error",
-        text: "Digite seu e-mail e uma senha com pelo menos 6 caracteres.",
+        text: "Digite seu usuário e uma senha com pelo menos 6 caracteres.",
       });
       return;
     }
@@ -43,7 +40,7 @@ export default function LoginScreen() {
       const auth = await apiRequest<AuthPayload>("/auth/login", {
         method: "POST",
         body: JSON.stringify({
-          email: login.trim().toLowerCase(),
+          login: login.trim(),
           password,
         }),
       });
@@ -52,47 +49,8 @@ export default function LoginScreen() {
         pathname: "/home",
         params: {
           name: auth.user.name,
-          email: auth.user.email,
+          login: auth.user.login,
         },
-      });
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Não foi possível entrar. Tente novamente em instantes.";
-
-      setFeedback({
-        tone: "error",
-        text: message,
-      });
-      setCanResendVerification(message.includes("Confirme seu e-mail"));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleResendVerification() {
-    const email = login.trim().toLowerCase();
-
-    if (!email.includes("@")) {
-      setFeedback({
-        tone: "error",
-        text: "Informe seu e-mail para reenviar a confirmação.",
-      });
-      setCanResendVerification(false);
-      return;
-    }
-
-    try {
-      setResending(true);
-      const result = await apiRequest<ApiMessage>("/auth/resend-verification", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      });
-
-      setFeedback({
-        tone: "info",
-        text: result.message,
       });
     } catch (error) {
       setFeedback({
@@ -100,10 +58,10 @@ export default function LoginScreen() {
         text:
           error instanceof Error
             ? error.message
-            : "Não foi possível reenviar a confirmação agora.",
+            : "Não foi possível entrar. Tente novamente em instantes.",
       });
     } finally {
-      setResending(false);
+      setLoading(false);
     }
   }
 
@@ -115,12 +73,11 @@ export default function LoginScreen() {
     >
       <AuthInput
         autoCapitalize="none"
-        autoComplete="email"
-        icon={<Mail size={21} color="#8F251F" />}
-        keyboardType="email-address"
-        label="E-mail"
+        autoComplete="username"
+        icon={<UserRound size={21} color="#8F251F" />}
+        label="Usuário"
         onChangeText={setLogin}
-        placeholder="cliente@riffrecords.com"
+        placeholder="ex: pedro98"
         returnKeyType="next"
         value={login}
       />
@@ -152,17 +109,6 @@ export default function LoginScreen() {
         <Text style={[styles.feedback, styles[feedback.tone]]}>
           {feedback.text}
         </Text>
-      ) : null}
-
-      {canResendVerification ? (
-        <AuthButton
-          icon={<Send size={19} color="#8F251F" />}
-          loading={resending}
-          onPress={handleResendVerification}
-          variant="secondary"
-        >
-          Reenviar confirmação
-        </AuthButton>
       ) : null}
 
       <AuthButton

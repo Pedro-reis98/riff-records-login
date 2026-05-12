@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
-import { ArrowLeft, LockKeyhole, Mail, Send, UserRound } from "lucide-react-native";
+import { ArrowLeft, LockKeyhole, UserPlus, UserRound } from "lucide-react-native";
 
 import { AuthButton } from "@/components/AuthButton";
 import { AuthInput } from "@/components/AuthInput";
@@ -10,7 +10,7 @@ import { apiRequest, ApiMessage } from "@/lib/api";
 
 export default function RegisterScreen() {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,10 +20,10 @@ export default function RegisterScreen() {
   const canSubmit = useMemo(
     () =>
       name.trim().length >= 2 &&
-      email.includes("@") &&
+      login.trim().length >= 3 &&
       password.length >= 6 &&
       password === confirmPassword,
-    [confirmPassword, email, name, password]
+    [confirmPassword, login, name, password]
   );
 
   async function handleRegister() {
@@ -41,7 +41,7 @@ export default function RegisterScreen() {
         method: "POST",
         body: JSON.stringify({
           name: name.trim(),
-          email: email.trim().toLowerCase(),
+          login: login.trim(),
           password,
           confirmPassword,
         }),
@@ -78,14 +78,13 @@ export default function RegisterScreen() {
 
       <AuthInput
         autoCapitalize="none"
-        autoComplete="email"
-        icon={<Mail size={21} color="#8F251F" />}
-        keyboardType="email-address"
-        label="E-mail"
-        onChangeText={setEmail}
-        placeholder="cliente@riffrecords.com"
+        autoComplete="username"
+        icon={<UserRound size={21} color="#8F251F" />}
+        label="Usuário"
+        onChangeText={setLogin}
+        placeholder="Escolha um usuário"
         returnKeyType="next"
-        value={email}
+        value={login}
       />
 
       <AuthInput
@@ -121,11 +120,11 @@ export default function RegisterScreen() {
 
       <AuthButton
         disabled={!canSubmit}
-        icon={<Send size={19} color="#FFF4E2" />}
+        icon={<UserPlus size={19} color="#FFF4E2" />}
         loading={loading}
         onPress={handleRegister}
       >
-        Enviar confirmação
+        Criar conta
       </AuthButton>
 
       <View style={styles.footerRow}>

@@ -5,7 +5,7 @@ import { CheckCircle2, LogOut, ShieldCheck } from "lucide-react-native";
 import { AuthButton } from "@/components/AuthButton";
 
 export default function HomeScreen() {
-  const params = useLocalSearchParams<{ name?: string; email?: string }>();
+  const params = useLocalSearchParams<{ name?: string; login?: string }>();
   const { width } = useWindowDimensions();
   const isWide = width >= 760;
   const displayName = params.name || "você";
@@ -28,7 +28,7 @@ export default function HomeScreen() {
           <View style={styles.statusTextGroup}>
             <Text style={styles.statusTitle}>Sessão segura</Text>
             <Text style={styles.statusText}>
-              {params.email || "Seu acesso"} foi validado com sucesso.
+              {params.login || "Seu acesso"} foi validado com sucesso.
             </Text>
           </View>
         </View>
