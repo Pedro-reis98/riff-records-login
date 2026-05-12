@@ -43,9 +43,10 @@ export default function RecoverScreen() {
           confirmPassword,
         }),
       });
+      setMessage(result.message || "Senha atualizada. Você já pode entrar.");
       setSuccess(true);
-      setMessage(result.message);
     } catch (error) {
+      setSuccess(false);
       setMessage(
         error instanceof Error
           ? error.message

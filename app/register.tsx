@@ -47,9 +47,10 @@ export default function RegisterScreen() {
         }),
       });
 
+      setMessage(result.message || "Conta criada com sucesso. Você já pode entrar.");
       setSuccess(true);
-      setMessage(result.message);
     } catch (error) {
+      setSuccess(false);
       setMessage(
         error instanceof Error
           ? error.message

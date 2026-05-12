@@ -1,8 +1,13 @@
 import { Platform } from "react-native";
 
+const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
 const DEFAULT_API_URL =
-  process.env.EXPO_PUBLIC_API_URL?.trim() ||
-  (Platform.OS === "web" ? "" : "http://localhost:3333");
+  configuredApiUrl ||
+  (Platform.OS === "web" && process.env.NODE_ENV === "development"
+    ? "http://localhost:3333"
+    : Platform.OS === "web"
+      ? ""
+      : "http://localhost:3333");
 
 type ApiOptions = RequestInit & {
   token?: string;
@@ -62,6 +67,13 @@ export async function apiRequest<T>(path: string, options: ApiOptions = {}) {
   if (!response.ok) {
     throw new ApiError(
       payload?.message || "Não foi possível concluir esta ação agora.",
+      response.status
+    );
+  }
+
+  if (!payload) {
+    throw new ApiError(
+      "O servidor respondeu sem dados. Verifique se a API está ligada.",
       response.status
     );
   }
