@@ -296,7 +296,7 @@ app.post("/auth/verify-email", async (request, response, next) => {
     response.json({
       ok: true,
       user: publicUser(user),
-      message: "E-mail confirmado. Voce ja pode entrar.",
+      message: "E-mail confirmado. Você já pode entrar.",
     });
   } catch (error) {
     next(error);
@@ -378,7 +378,7 @@ app.post("/auth/reset-password", async (request, response, next) => {
 
     response.json({
       ok: true,
-      message: "Senha atualizada. Voce ja pode entrar.",
+      message: "Senha atualizada. Você já pode entrar.",
     });
   } catch (error) {
     next(error);
