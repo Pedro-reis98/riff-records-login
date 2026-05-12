@@ -30,6 +30,40 @@ export default function RootLayout() {
             overflow-wrap: break-word;
           }
 
+          #catalog-layout,
+          #catalog-shelf-section,
+          #catalog-detail-column {
+            box-sizing: border-box !important;
+            max-width: 100%;
+          }
+
+          @media (min-width: 1000px) {
+            #catalog-layout {
+              align-items: flex-start !important;
+              flex-direction: row !important;
+            }
+
+            #catalog-shelf-section {
+              flex: 1 1 0% !important;
+              min-width: 0 !important;
+            }
+
+            #catalog-detail-column {
+              flex: 0 0 470px !important;
+              width: 470px !important;
+            }
+          }
+
+          @media (max-width: 999px) {
+            #catalog-layout {
+              flex-direction: column !important;
+            }
+
+            #catalog-detail-column {
+              width: 100% !important;
+            }
+          }
+
           @media (min-width: 900px) {
             #auth-shell {
               flex-direction: row !important;

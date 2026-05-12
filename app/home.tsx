@@ -1,6 +1,6 @@
 import { Platform, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { CheckCircle2, LogOut, ShieldCheck } from "lucide-react-native";
+import { CheckCircle2, Library, LogOut, ShieldCheck } from "lucide-react-native";
 
 import { AuthButton } from "@/components/AuthButton";
 
@@ -34,8 +34,16 @@ export default function HomeScreen() {
         </View>
 
         <AuthButton
-          icon={<LogOut size={20} color="#FFF4E2" />}
+          icon={<Library size={20} color="#FFF4E2" />}
+          onPress={() => router.push("/catalog")}
+        >
+          Abrir catálogo de vinis
+        </AuthButton>
+
+        <AuthButton
+          icon={<LogOut size={20} color="#8F251F" />}
           onPress={() => router.replace("/")}
+          variant="secondary"
         >
           Sair
         </AuthButton>
